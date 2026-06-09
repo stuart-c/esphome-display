@@ -28,10 +28,6 @@ substitutions:
   spi_d2: GPIO14
   spi_d3: GPIO9
 
-  # ===== Audio Amp Enable (Keep disabled/low) =====
-  amp_pin:
-    number: GPIO1
-    ignore_strapping_warning: true
 
 # Page-cycling button (BOOT button on GPIO 0)
 binary_sensor:
