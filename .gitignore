@@ -1,0 +1,3 @@
+# OpenSCAD build outputs
+openscad/dist/
+openscad/*.stl
