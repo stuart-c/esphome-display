@@ -122,22 +122,6 @@ sensor:
     unit_of_measurement: "%"
     entity_category: "diagnostic"
 
-sendspin:
-  id: sendspin_hub
-  task_stack_in_psram: true
-  kalman_process_error: 0.01
-
-media_source:
-  - platform: sendspin
-    id: sendspin_source
-  - platform: http_request
-    id: http_source
-    buffer_size: 500000
-
-media_player:
-  - platform: sendspin
-    id: sendspin_group_media_player
-
 button:
   - platform: restart
     id: restart_button
