@@ -3,18 +3,8 @@ substitutions:
   i2c_sda: GPIO38
   i2c_scl: GPIO39
 
-  # ===== I2S Audio Configuration (Microphone only) =====
-  i2s_mclk: GPIO17
-  i2s_bclk: GPIO18
-  i2s_lrclk: GPIO21
-  i2s_din: GPIO15
-  # DOUT is not used since speaker output is disabled, but we keep it mapped to an unused pin to prevent compile errors.
-  i2s_dout: GPIO16
-
   # ===== Screen Button (BOOT button) =====
   screen_button_pin: GPIO0
-  # Map the unused center button to a free/internal GPIO to maintain software compatibility without triggering events.
-  center_button_pin: GPIO46
 
   # ===== Display Backlight and Control =====
   backlight_pin: GPIO41

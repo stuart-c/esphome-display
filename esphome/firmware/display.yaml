@@ -394,13 +394,6 @@ script:
 
           std::string status_icons = "";
           std::string wifi_icon = "wifi-strength-off";
-          std::string mic_icon = "microphone";
-
-          if(id(master_mute_switch).state) {
-            mic_icon = "microphone-off";
-          } else if(id(voice_assistant_phase) == $voice_assist_listening_for_command_phase_id) {
-            mic_icon = "microphone-message";
-          }
 
           if(id(wifi_id).is_connected()) {
             wifi_icon = str_sprintf("wifi-strength-%d", ((int)id(wifi_signal_percentage).state - 1) / 20);
@@ -411,7 +404,6 @@ script:
           }
 
           status_icons += id(symbol)[wifi_icon].c_str();
-          status_icons += id(symbol)[mic_icon].c_str();
 
           // Divider line
           it->line(footer_x_indent, footer_y_line, it->get_width() - footer_x_indent, footer_y_line);
