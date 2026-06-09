@@ -27,9 +27,7 @@ esphome:
             then:
               - lambda: id(init_in_progress) = false;
               - script.execute: control_leds
-    - priority: 500
-      then:
-        - pcf85063.read_time
+
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -97,11 +95,10 @@ psram:
   speed: 80MHz
   ignore_not_found: false
 
-# RTC
+# Time Source (Home Assistant)
 time:
-  - platform: pcf85063
+  - platform: homeassistant
     id: rtc_time
-    update_interval: never
     on_time:
       # Every minute
       - seconds: 0
