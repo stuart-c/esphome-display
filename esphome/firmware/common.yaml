@@ -19,19 +19,6 @@ substitutions:
   hidden_ssid: "false"
 
   # Substitutions for audio files
-  startup_sound_file: https://github.com/adafruit/Adafruit-Sound-Samples/raw/master/sonic-pi/elec_blup.wav
-  timer_finished_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/timer_finished.flac
-  wake_word_triggered_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/wake_word_triggered.flac
-  center_button_press_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/center_button_press.flac
-  center_button_double_press_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/center_button_double_press.flac
-  center_button_triple_press_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/center_button_triple_press.flac
-  center_button_long_press_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/center_button_long_press.flac
-  factory_reset_initiated_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/factory_reset_initiated.mp3
-  factory_reset_cancelled_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/factory_reset_cancelled.mp3
-  factory_reset_confirmed_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/factory_reset_confirmed.mp3
-  easter_egg_tick_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/easter_egg_tick.mp3
-  easter_egg_tada_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/easter_egg_tada.mp3
-  error_cloud_expired_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/error_cloud_expired.mp3
 
   #mic lookup
   mic_channel_0: 'left'
@@ -56,36 +43,6 @@ media_source:
   - platform: http_request
     id: http_source
     buffer_size: 500000
-  - platform: file
-    id: file_source
-    files:
-      - id: startup_sound
-        file: ${startup_sound_file}
-      - id: center_button_press_sound
-        file: ${center_button_press_sound_file}
-      - id: center_button_double_press_sound
-        file: ${center_button_double_press_sound_file}
-      - id: center_button_triple_press_sound
-        file: ${center_button_triple_press_sound_file}
-      - id: center_button_long_press_sound
-        file: ${center_button_long_press_sound_file}
-      - id: factory_reset_initiated_sound
-        file: ${factory_reset_initiated_sound_file}
-      - id: factory_reset_cancelled_sound
-        file: ${factory_reset_cancelled_sound_file}
-      - id: factory_reset_confirmed_sound
-        file: ${factory_reset_confirmed_sound_file}
-      - id: timer_finished_sound
-        file: ${timer_finished_sound_file}
-      - id: wake_word_triggered_sound
-        file: ${wake_word_triggered_sound_file}
-      - id: easter_egg_tick_sound
-        file: ${easter_egg_tick_sound_file}
-      - id: easter_egg_tada_sound
-        file: ${easter_egg_tada_sound_file}
-      - id: error_cloud_expired
-        file: ${error_cloud_expired_sound_file}
-
 media_player:
   - platform: sendspin
     id: sendspin_group_media_player
@@ -133,15 +90,7 @@ micro_wake_word:
                     then:
                       voice_assistant.stop:
                     else:
-                      - if:
-                          condition:
-                            switch.is_on: wake_sound
-                          then:
-                            - script.execute:
-                                id: play_sound
-                                priority: true
-                                sound_file: "wake_word_triggered_sound"
-                            - delay: 300ms
+
                       - voice_assistant.start:
                           wake_word: !lambda return wake_word;
 
@@ -210,14 +159,7 @@ voice_assistant:
           - lambda: id(voice_assistant_phase) = ${voice_assist_error_phase_id};
           - script.execute: control_leds
     # If the error code is cloud-auth-failed, serve a local audio file guiding the user.
-    - if:
-        condition:
-          - lambda: return code == "cloud-auth-failed";
-        then:
-          - script.execute:
-              id: play_sound
-              priority: true
-              sound_file: "error_cloud_expired"
+
   # When the voice assistant starts: Play a wake up sound, duck audio.
   on_start:
     - delay: 0s
