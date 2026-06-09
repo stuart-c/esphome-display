@@ -1,0 +1,37 @@
+packages:
+  # This is an inline package to prefix the on_client_connected with the wait_until action.
+  # It must appear before the actual package so it becomes the original config and the
+  # on_client_connected list from the package config is appended onto this one.
+  va_connected_wait_for_ble:
+    voice_assistant:
+      on_client_connected:
+        - wait_until:
+            not: ble.enabled
+        - delay: 2s
+    wifi:
+      on_disconnect:
+        - ble.enable:
+
+  board: !include firmware/board-lcd.yaml
+  common:
+    file: firmware/common.yaml
+    vars:
+      name: voice-assistant-display
+  display: !include firmware/display.yaml
+
+esphome:
+  project:
+    name: "stuart-c.esphome-display"
+    version: dev
+
+ota:
+  - platform: http_request
+    id: ota_http_request
+
+http_request:
+
+update:
+  - platform: http_request
+    name: None
+    id: update_http_request
+    source: https://stuart-c.github.io/esphome-display/dev/voice

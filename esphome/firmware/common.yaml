@@ -1,0 +1,345 @@
+substitutions:
+  # Phases of the Voice Assistant
+  # The voice assistant is ready to be triggered by a wake word
+  voice_assist_idle_phase_id: '1'
+  # The voice assistant is waiting for a voice command (after being triggered by the wake word)
+  voice_assist_waiting_for_command_phase_id: '2'
+  # The voice assistant is listening for a voice command
+  voice_assist_listening_for_command_phase_id: '3'
+  # The voice assistant is currently processing the command
+  voice_assist_thinking_phase_id: '4'
+  # The voice assistant is replying to the command
+  voice_assist_replying_phase_id: '5'
+  # The voice assistant is not ready
+  voice_assist_not_ready_phase_id: '10'
+  # The voice assistant encountered an error
+  voice_assist_error_phase_id: '11'
+
+  # Change this to true in case you ahve a hidden SSID at home.
+  hidden_ssid: "false"
+
+  # Substitutions for audio files
+  startup_sound_file: https://github.com/adafruit/Adafruit-Sound-Samples/raw/master/sonic-pi/elec_blup.wav
+  timer_finished_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/timer_finished.flac
+  wake_word_triggered_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/wake_word_triggered.flac
+  center_button_press_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/center_button_press.flac
+  center_button_double_press_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/center_button_double_press.flac
+  center_button_triple_press_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/center_button_triple_press.flac
+  center_button_long_press_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/center_button_long_press.flac
+  factory_reset_initiated_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/factory_reset_initiated.mp3
+  factory_reset_cancelled_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/factory_reset_cancelled.mp3
+  factory_reset_confirmed_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/factory_reset_confirmed.mp3
+  easter_egg_tick_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/easter_egg_tick.mp3
+  easter_egg_tada_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/easter_egg_tada.mp3
+  error_cloud_expired_sound_file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/error_cloud_expired.mp3
+
+  #mic lookup
+  mic_channel_0: 'left'
+  mic_channel_1: 'right' # mic wont allow right
+  mic_channel_2: 'stereo' # voice assistant does not support stereo
+
+  #WORKING
+  which_mic: 0 #0=left, 1=right, 2=stereo
+  i2s_sample_rate: 16000 # Works as in sync with microphone (mic must have 16000 for voice assistant)
+  i2s_bits_per_sample: 32
+  i2s_mode_mic: secondary
+  i2s_mode_sendspin:
+  id: sendspin_hub
+  task_stack_in_psram: true
+  kalman_process_error: 0.01
+
+http_request:
+
+media_source:
+  - platform: sendspin
+    id: sendspin_source
+  - platform: http_request
+    id: http_source
+    buffer_size: 500000
+  - platform: file
+    id: file_source
+    files:
+      - id: startup_sound
+        file: ${startup_sound_file}
+      - id: center_button_press_sound
+        file: ${center_button_press_sound_file}
+      - id: center_button_double_press_sound
+        file: ${center_button_double_press_sound_file}
+      - id: center_button_triple_press_sound
+        file: ${center_button_triple_press_sound_file}
+      - id: center_button_long_press_sound
+        file: ${center_button_long_press_sound_file}
+      - id: factory_reset_initiated_sound
+        file: ${factory_reset_initiated_sound_file}
+      - id: factory_reset_cancelled_sound
+        file: ${factory_reset_cancelled_sound_file}
+      - id: factory_reset_confirmed_sound
+        file: ${factory_reset_confirmed_sound_file}
+      - id: timer_finished_sound
+        file: ${timer_finished_sound_file}
+      - id: wake_word_triggered_sound
+        file: ${wake_word_triggered_sound_file}
+      - id: easter_egg_tick_sound
+        file: ${easter_egg_tick_sound_file}
+      - id: easter_egg_tada_sound
+        file: ${easter_egg_tada_sound_file}
+      - id: error_cloud_expired
+        file: ${error_cloud_expired_sound_file}
+
+media_player:
+  - platform: sendspin
+    id: sendspin_group_media_player
+
+# Sendspin related components are pinned to specific commits for reproducible builds
+external_components:
+  - source:
+      # https://github.com/esphome/esphome/pull/12256
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: a2d98e1d5e020200db8f3caf27a74a939a661dc4
+    components: [audio]
+  - source:
+      # https://github.com/esphome/esphome/pull/12258
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: b4b7c5b25ebe0f2ab988f700219fa3c57b2377b7
+    components: [media_player]
+  - source:
+      # https://github.com/esphome/esphome/pull/12284
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: d48058e140c98f5c2d902661d851a6b712d62434
+    components: [sendspin]
+  - source:
+      # https://github.com/esphome/esphome/pull/14013
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: 51dcce3d1f22865ebb458a5447bbc877ac946b5a
+    components: [mdns]
+  - source:
+      # https://github.com/esphome/esphome/pull/12429
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: b49b09b6ae56502aa3ce51be86f90d732d019b2c
+    refresh: 0s
+    components: [file, http_request, media_source, speaker_source]
+
+  - source:
+      type: git
+      url: "https://github.com/sw3Dan/waveshare-s2-audio_esphome_voice"
+      ref: main
+    components: [es8311]
+    refresh: 24h
+
+micro_wake_word:
+  id: mww
+  microphone:
+    microphone: i2s_mics
+    channels: $which_mic
+  stop_after_detection: false
+  models:
+    - model: https://github.com/kahrendt/microWakeWord/releases/download/okay_nabu_20241226.3/okay_nabu.json
+      id: okay_nabu
+    - model: hey_jarvis
+      id: hey_jarvis
+    - model: hey_mycroft
+      id: hey_mycroft
+    - model: https://github.com/kahrendt/microWakeWord/releases/download/stop/stop.json
+      id: stop
+      internal: true
+  vad:
+    probability_cutoff: 0.03 #0.03
+
+  on_wake_word_detected:
+    - logger.log:
+        format: "Wake word detected: %s"
+        args: [wake_word.c_str()]
+    # If the wake word is detected when the device is muted (Possible with the software mute switch): Do nothing
+    - if:
+        condition:
+          switch.is_off: master_mute_switch
+        then:
+          # If a timer is ringing: Stop it, do not start the voice assistant (We can stop timer from voice!)
+          - if:
+              condition:
+                switch.is_on: timer_ringing
+              then:
+                - switch.turn_off: timer_ringing
+              # Stop voice assistant if running
+              else:
+                - if:
+                    condition:
+                      voice_assistant.is_running:
+                    then:
+                      voice_assistant.stop:
+                    else:
+                      - if:
+                          condition:
+                            switch.is_on: wake_sound
+                          then:
+                            - script.execute:
+                                id: play_sound
+                                priority: true
+                                sound_file: "wake_word_triggered_sound"
+                            - delay: 300ms
+                      - voice_assistant.start:
+                          wake_word: !lambda return wake_word;
+
+select:
+  - platform: template
+    name: "Wake word sensitivity"
+    optimistic: true
+    initial_option: Slightly sensitive
+    restore_value: true
+    entity_category: config
+    options:
+      - Slightly sensitive
+      - Moderately sensitive
+      - Very sensitive
+    on_value:
+      # Sets specific wake word probabilities computed for each particular model
+      # Note probability cutoffs are set as a quantized uint8 value, each comment has the corresponding floating point cutoff
+      # False Accepts per Hour values are tested against all units and channels from the Dinner Party Corpus.
+      # These cutoffs apply only to the specific models included in the firmware: okay_nabu@20241226.3, hey_jarvis@v2, hey_mycroft@v2
+      lambda: |-
+        if (x == "Slightly sensitive") {
+          id(okay_nabu).set_probability_cutoff(217);    // 0.85 -> 0.000 FAPH on DipCo (Manifest's default)
+          id(hey_jarvis).set_probability_cutoff(247);   // 0.97 -> 0.563 FAPH on DipCo (Manifest's default)
+          id(hey_mycroft).set_probability_cutoff(253);  // 0.99 -> 0.567 FAPH on DipCo
+        } else if (x == "Moderately sensitive") {
+          id(okay_nabu).set_probability_cutoff(176);    // 0.69 -> 0.376 FAPH on DipCo
+          id(hey_jarvis).set_probability_cutoff(235);   // 0.92 -> 0.939 FAPH on DipCo
+          id(hey_mycroft).set_probability_cutoff(242);  // 0.95 -> 1.502 FAPH on DipCo (Manifest's default)
+        } else if (x == "Very sensitive") {
+          id(okay_nabu).set_probability_cutoff(50);
+          //id(okay_nabu).set_probability_cutoff(143);    // 0.56 -> 0.751 FAPH on DipCo
+          id(hey_jarvis).set_probability_cutoff(212);   // 0.83 -> 1.502 FAPH on DipCo
+          id(hey_mycroft).set_probability_cutoff(237);  // 0.93 -> 1.878 FAPH on DipCo
+        }
+
+voice_assistant:
+  id: va
+  microphone:
+    id: va_mic
+    microphone: i2s_mics
+    channels: $which_mic #correct that it's left/right cannel OR number of channels?
+  micro_wake_word: mww
+  use_wake_word: false
+  noise_suppression_level: 0 #2 #0
+  auto_gain: 0 dbfs
+  volume_multiplier: 1
+  on_client_connected:
+    - lambda: id(init_in_progress) = false;
+    - micro_wake_word.start:
+    - lambda: id(voice_assistant_phase) = ${voice_assist_idle_phase_id};
+    - script.execute: control_leds
+  on_client_disconnected:
+    - voice_assistant.stop:
+    - lambda: id(voice_assistant_phase) = ${voice_assist_not_ready_phase_id};
+    - script.execute: control_leds
+  on_error:
+    # Only set the error phase if the error code is different than duplicate_wake_up_detected or stt-no-text-recognized
+    # These two are ignored for a better user experience
+    - if:
+        condition:
+          and:
+            - lambda: return !id(init_in_progress);
+            - lambda: return code != "duplicate_wake_up_detected";
+            - lambda: return code != "stt-no-text-recognized";
+        then:
+          - lambda: id(voice_assistant_phase) = ${voice_assist_error_phase_id};
+          - script.execute: control_leds
+    # If the error code is cloud-auth-failed, serve a local audio file guiding the user.
+    - if:
+        condition:
+          - lambda: return code == "cloud-auth-failed";
+        then:
+          - script.execute:
+              id: play_sound
+              priority: true
+              sound_file: "error_cloud_expired"
+  # When the voice assistant starts: Play a wake up sound, duck audio.
+  on_start:
+    - delay: 0s
+  on_listening:
+    - lambda: id(voice_assistant_phase) = ${voice_assist_waiting_for_command_phase_id};
+    - script.execute: control_leds
+  on_stt_vad_start:
+    - lambda: id(voice_assistant_phase) = ${voice_assist_listening_for_command_phase_id};
+    - script.execute: control_leds
+  on_stt_vad_end:
+    - lambda: id(voice_assistant_phase) = ${voice_assist_thinking_phase_id};
+    - script.execute: control_leds
+  on_intent_progress:
+    - if:
+        condition:
+          # A nonempty x variable means a streaming TTS url was sent to the media player
+          lambda: 'return !x.empty();'
+        then:
+          - lambda: id(voice_assistant_phase) = ${voice_assist_replying_phase_id};
+          - script.execute: control_leds
+          # Start a script that would potentially enable the stop word if the response is longer than a second
+          - script.execute: activate_stop_word_once
+  on_tts_start:
+    - script.execute:
+        id: script_tts_start
+        x: !lambda return x;
+    - if:
+        condition:
+          # The intent_progress trigger didn't start the TTS Reponse
+          lambda: 'return id(voice_assistant_phase) != ${voice_assist_replying_phase_id};'
+        then:
+          - lambda: id(voice_assistant_phase) = ${voice_assist_replying_phase_id};
+          - script.execute: control_leds
+          # Start a script that would potentially enable the stop word if the response is longer than a second
+          - script.execute: activate_stop_word_once
+  # When the voice assistant ends ...
+  on_end:
+    - wait_until:
+        not:
+          voice_assistant.is_running:
+    # Stop ducking audio.
+    - delay: 0s
+    - if:
+        condition:
+          lambda: return id(voice_assistant_phase) == ${voice_assist_error_phase_id};
+        then:
+          - delay: 1s
+    # Reset the voice assistant phase id.
+    - lambda: id(voice_assistant_phase) = ${voice_assist_idle_phase_id};
+    - script.execute: tts_delay
+    - script.execute: control_leds
+  on_timer_finished:
+    - switch.turn_on: timer_ringing
+  on_timer_started:
+    - script.execute: control_leds
+  on_timer_cancelled:
+    - script.execute: control_leds
+  on_timer_updated:
+    - script.execute: control_leds
+  on_timer_tick:
+    - script.execute: control_leds
+
+button:
+  - platform: factory_reset
+    id: factory_reset_button
+    name: "Factory Reset"
+    entity_category: diagnostic
+    internal: true
+  - platform: restart
+    id: restart_button
+    name: "Restart"
+    entity_category: config
+    disabled_by_default: true
+    icon: "mdi:restart"
+  - platform: template
+    id: update_button
+    name: "Update Check"
+    entity_category: diagnostic
+    disabled_by_default: true
+    on_press:
+      - update.check:
+          id: update_http_request
+
+debug:
+  update_interval: 5s

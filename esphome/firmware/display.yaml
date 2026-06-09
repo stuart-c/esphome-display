@@ -1,0 +1,838 @@
+esphome:
+  includes:
+    - <sstream>
+
+globals:
+  # Temporary variable to store previous screen
+  - id: previous_screen
+    type: std::string
+    restore_value: no
+  # Wrapped version of message
+  - id: message_wrapped
+    type: std::string
+    restore_value: no
+  # Status area text
+  - id: status_area_text
+    type: std::string
+    restore_value: no
+
+spi:
+  - id: display_spi
+    type: quad
+    clk_pin: $spi_clk
+    data_pins: [$spi_d0, $spi_d1, $spi_d2, $spi_d3]
+
+display:
+  - platform: mipi_spi
+    id: screen
+    model: JC3248W535
+    cs_pin: $display_cs
+    dc_pin: $display_dc
+    data_rate: 40MHz
+    rotation: 90
+    dimensions:
+      height: 480
+      width: 320
+    lambda: |-
+      id(update_screen).execute();
+
+output:
+  - id: gpio_backlight_pwm
+    platform: ledc
+    pin: $backlight_pin
+
+light:
+  - id: backlight
+    name: Backlight
+    platform: monochromatic
+    output: gpio_backlight_pwm
+    restore_mode: ALWAYS_ON
+
+font:
+
+  # Status Area
+  - file: "gfonts://Roboto"
+    id: font_status
+    size: 14
+  - file: https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/fonts/materialdesignicons-webfont.woff
+    id: font_status_icons
+    size: 16
+    glyphs:
+      - "\U000F092D" # wifi-strength-off
+      - "\U000F092F" # wifi-strength-0
+      - "\U000F092B" # wifi-strength-0-alert
+      - "\U000F091F" # wifi-strength-1
+      - "\U000F0920" # wifi-strength-1-alert
+      - "\U000F0922" # wifi-strength-2
+      - "\U000F0923" # wifi-strength-2-alert
+      - "\U000F0925" # wifi-strength-3
+      - "\U000F0926" # wifi-strength-3-alert
+      - "\U000F0928" # wifi-strength-4
+      - "\U000F0929" # wifi-strength-4-alert
+      - "\U000F036C" # microphone
+      - "\U000F050A" # microphone-message
+      - "\U000F036D" # microphone-off
+      - "\U000F12A1" # battery-low
+      - "\U000F12A2" # battery-medium
+      - "\U000F12A3" # battery-high
+
+  # Clock Screen
+  - file: "gfonts://Roboto@Bold"
+    id: font_clock_time
+    size: 110
+    glyphs: "0123456789: "
+  - file: "gfonts://Roboto@Medium"
+    id: font_clock_am_pm
+    size: 24
+    glyphs: "APM"
+  - file: "gfonts://Roboto@Medium"
+    id: font_clock_day
+    size: 28
+    glyphs: "adeFhiMnorsStTuWy"
+  - file: "gfonts://Roboto"
+    id: font_clock_date
+    size: 20
+
+  - file: "gfonts://Material+Symbols+Outlined"
+    id: material_icons_small
+    size: 24
+  - file: "gfonts://Material+Symbols+Outlined"
+    id: material_icons_weekly
+    size: 32
+  - file: "gfonts://Material+Symbols+Outlined"
+    id: material_icons_hourly
+    size: 32
+  - file: "gfonts://Material+Symbols+Outlined"
+    id: material_icons
+    size: 40
+    glyphs:
+      - "\ue518" # wb_sunny
+      - "\ue2bd" # cloud
+      - "\uef63" # partly_cloudy_day
+      - "\uef66" # rainy
+  - file: "gfonts://Material+Symbols+Outlined"
+    id: material_icons_current
+    size: 48
+  - file: "gfonts://Material+Symbols+Outlined"
+    id: material_icons_large
+    size: 64
+
+  - file: "gfonts://Roboto@Medium"
+    id: font_city
+    size: 20
+  - file: "gfonts://Roboto@Bold"
+    id: font_time_split
+    size: 72
+  - file: "gfonts://Roboto@Bold"
+    id: font_main_temp
+    size: 48
+  - file: "gfonts://Roboto"
+    id: font_temp
+    size: 18
+  - file: "gfonts://Roboto"
+    id: font_date
+    size: 12
+  - file: "gfonts://Roboto@Bold"
+    id: font_temp_hi
+    size: 18
+  - file: "gfonts://Roboto"
+    id: font_temp_lo
+    size: 16
+  - file: "gfonts://Roboto@Light"
+    id: font_am_pm
+    size: 24
+  - file: "gfonts://Roboto@Bold"
+    id: font_temp_main
+    size: 60
+  - file: "gfonts://Roboto"
+    id: font_stats
+    size: 14
+  - file: "gfonts://Roboto"
+    id: font_label
+    size: 14
+  - file: "gfonts://Roboto@Medium"
+    id: font_hourly_time
+    size: 16
+  - file: "gfonts://Roboto"
+    id: font_hourly_temp_1
+    size: 18
+  - file: "gfonts://Roboto@Bold"
+    id: font_header_2
+    size: 24
+  - file: "gfonts://Roboto@Medium"
+    id: font_day_2
+    size: 18
+  - file: "gfonts://Roboto@Bold"
+    id: font_header_3
+    size: 26
+  - file: "gfonts://Roboto@Medium"
+    id: font_day_3
+    size: 16
+  - file: "gfonts://Roboto@Bold"
+    id: font_time_5
+    size: 110
+  - file: "gfonts://Roboto@Medium"
+    id: font_date_day_5
+    size: 28
+  - file: "gfonts://Roboto"
+    id: font_date_detail_5
+    size: 20
+  - file: "gfonts://Roboto@Bold"
+    id: font_time_6
+    size: 80
+  - file: "gfonts://Roboto@Medium"
+    id: font_date_day_6
+    size: 22
+  - file: "gfonts://Roboto"
+    id: font_date_detail_6
+    size: 16
+  - file: "gfonts://Roboto@Medium"
+    id: font_date_day_7
+    size: 20
+  - file: "gfonts://Roboto"
+    id: font_date_detail_7
+    size: 14
+  - file: "gfonts://Roboto@Bold"
+    id: font_hourly_temp_7
+    size: 18
+
+  - file: "gfonts://Roboto"
+    id: font_note
+    size: 20
+
+select:
+  - platform: template
+    name: Screen
+    id: screen_name
+    icon: "mdi:monitor-screenshot"
+    optimistic: true
+    options:
+      - "Clock"
+      - "Daily Weather"
+      - "Weekly Weather"
+      - "Timers"
+      - "Note"
+      - "Page 1"
+      - "Page 2"
+      - "Page 3"
+      - "Page 4"
+      - "Page 5"
+      - "Page 6"
+      - "Page 7"
+      - "Page 8"
+    initial_option: "Clock"
+    on_value:
+      then:
+        - script.execute: control_leds
+
+mapping:
+  - id: symbol
+    from: string
+    to: string
+    entries:
+      timer:              "\ue425"
+      wb_sunny:           "\ue518"
+      cloud:              "\ue2bd"
+      partly_cloudy_day:  "\uef63"
+      rainy:              "\uef66"
+
+#    glyphs: &mdi-weather-glyphs
+#      - "\U000F0590" # mdi-weather-cloudy
+#      - "\U000F0F2F" # mdi-weather-cloudy-alert
+#      - "\U000F0E6E" # mdi-weather-cloudy-arrow-right
+#      - "\U000F0591" # mdi-weather-fog
+#      - "\U000F0592" # mdi-weather-hail
+#      - "\U000F0F30" # mdi-weather-hazy
+#      - "\U000F0898" # mdi-weather-hurricane
+#      - "\U000F0593" # mdi-weather-lightning
+#      - "\U000F067E" # mdi-weather-lightning-rainy
+#      - "\U000F0594" # mdi-weather-night
+#      - "\U000F0F31" # mdi-weather-night-partly-cloudy
+#      - "\U000F0595" # mdi-weather-partly-cloudy
+#      - "\U000F0F32" # mdi-weather-partly-lightning
+#      - "\U000F0F33" # mdi-weather-partly-rainy
+#      - "\U000F0F34" # mdi-weather-partly-snowy
+#      - "\U000F0F35" # mdi-weather-partly-snowy-rainy
+#      - "\U000F0596" # mdi-weather-pouring
+#      - "\U000F0597" # mdi-weather-rainy
+#      - "\U000F0598" # mdi-weather-snowy
+#      - "\U000F0F36" # mdi-weather-snowy-heavy
+#      - "\U000F067F" # mdi-weather-snowy-rainy
+#      - "\U000F0599" # mdi-weather-sunny
+#      - "\U000F0F37" # mdi-weather-sunny-alert
+#      - "\U000F14E4" # mdi-weather-sunny-off
+#      - "\U000F059A" # mdi-weather-sunset
+#      - "\U000F059B" # mdi-weather-sunset-down
+#      - "\U000F059C" # mdi-weather-sunset-up
+#      - "\U000F0F38" # mdi-weather-tornado
+#      - "\U000F059D" # mdi-weather-windy
+#      - "\U000F059E" # mdi-weather-windy-variant
+
+      # WiFi
+      wifi-strength-off:        "\U000F092D"
+      wifi-strength-0:          "\U000F092F"
+      wifi-strength-0-alert:    "\U000F092B"
+      wifi-strength-1:          "\U000F091F"
+      wifi-strength-1-alert:    "\U000F0920"
+      wifi-strength-2:          "\U000F0922"
+      wifi-strength-2-alert:    "\U000F0923"
+      wifi-strength-3:          "\U000F0925"
+      wifi-strength-3-alert:    "\U000F0926"
+      wifi-strength-4:          "\U000F0928"
+      wifi-strength-4-alert:    "\U000F0929"
+
+      # Microphone
+      microphone:               "\U000F036C"
+      microphone-message:       "\U000F050A"
+      microphone-off:           "\U000F036D"
+
+      # Battery
+
+script:
+  - id: control_leds
+    then:
+      - component.update: screen
+
+  - id: wrap_text
+    mode: restart
+    parameters:
+      input_text: string
+    then:
+      - lambda: |-
+          if (input_text.empty()) {
+            id(message_wrapped) = "";
+            return;
+          }
+      - lambda: |-
+          std::string output = "";
+          std::string current_line = "";
+          std::stringstream ss(input_text);
+          std::string word;
+
+          auto it = id(screen);
+
+          int max_px = it->get_width() - 20; // Your screen width minus some padding
+
+          while (ss >> word) {
+            std::string test_line = current_line + (current_line.empty() ? "" : " ") + word;
+            int w, h, x_off, y_off;
+
+            // Measure the test line
+            it->get_text_bounds(0, 0, test_line.c_str(), id(font_note), TextAlign::TOP_LEFT, &x_off, &y_off, &w, &h);
+
+            if (w <= max_px) {
+              current_line = test_line;
+            } else {
+              // Add the completed line and a newline character
+              output += current_line + "\n";
+              current_line = word;
+            }
+          }
+
+          output += current_line; // Add the final bits
+
+          id(message_wrapped) = output;
+
+  - id: update_screen
+    then:
+      - lambda: |-
+          auto now = id(rtc_time).now();
+
+          ESP_LOGD("lambda", "Refresh screen: %i", now.timestamp);
+
+          std::string current_screen = id(screen_name).current_option();
+
+          ESP_LOGD("lambda", "Screen: %s", current_screen.c_str());
+
+          // Update main screen
+          if(current_screen == "Clock") {
+            id(screen_clock).execute();
+          } else if(current_screen == "Daily Weather") {
+            id(screen_daily_weather).execute();
+          } else if(current_screen == "Weekly Weather") {
+            id(screen_weekly_weather).execute();
+          } else if(current_screen == "Timers") {
+            id(screen_timers).execute();
+          } else if(current_screen == "Note") {
+            id(screen_note).execute();
+          } else if(current_screen == "Page 1") {
+            id(screen_page_1).execute();
+          } else if(current_screen == "Page 2") {
+            id(screen_page_2).execute();
+          } else if(current_screen == "Page 3") {
+            id(screen_page_3).execute();
+          } else if(current_screen == "Page 4") {
+            id(screen_page_4).execute();
+          } else if(current_screen == "Page 5") {
+            id(screen_page_5).execute();
+          } else if(current_screen == "Page 6") {
+            id(screen_page_6).execute();
+          } else if(current_screen == "Page 7") {
+            id(screen_page_7).execute();
+          } else if(current_screen == "Page 8") {
+            id(screen_page_8).execute();
+          } else {
+              ESP_LOGD("lambda", "Unknown page: %s", current_screen.c_str());
+              id(status_area_text) = str_sprintf("Unknown page: %s", current_screen.c_str());
+          }
+
+          // Update status area
+          id(display_status).execute();
+
+  - id: display_status
+    then:
+      - lambda: |-
+          // Update status area
+          auto it = id(screen);
+
+          std::string status_text = id(status_area_text).c_str();
+
+          // --- STATUS BAR (Bottom 40px) ---
+          int footer_y = it->get_height() - 15;
+          int footer_y_line = footer_y - 15;
+          int footer_x_indent = 20;
+
+          std::string status_icons = "";
+          std::string wifi_icon = "wifi-strength-off";
+          std::string mic_icon = "microphone";
+
+          if(id(master_mute_switch).state) {
+            mic_icon = "microphone-off";
+          } else if(id(voice_assistant_phase) == $voice_assist_listening_for_command_phase_id) {
+            mic_icon = "microphone-message";
+          }
+
+          if(id(wifi_id).is_connected()) {
+            wifi_icon = str_sprintf("wifi-strength-%d", ((int)id(wifi_signal_percentage).state - 1) / 20);
+
+            if(! id(api_id).is_connected()) {
+              wifi_icon += "-alert";
+            }
+          }
+
+          status_icons += id(symbol)[wifi_icon].c_str();
+          status_icons += id(symbol)[mic_icon].c_str();
+
+          // Divider line
+          it->line(footer_x_indent, footer_y_line, it->get_width() - footer_x_indent, footer_y_line);
+
+          // Status Text (Bottom Left)
+          it->printf(footer_x_indent, footer_y, id(font_status), TextAlign::CENTER_LEFT, "%s", status_text.c_str());
+
+          // Status Icons (Bottom Right)
+          it->printf(it->get_width() - footer_x_indent, footer_y, id(font_status_icons), TextAlign::CENTER_RIGHT, "%s", status_icons.c_str());
+
+  - id: tts_delay
+    mode: restart
+    then:
+      - delay: 10s
+      - if:
+          condition:
+            lambda: return id(screen_name).current_option() == "Note";
+          then:
+            - select.set:
+                id: screen_name
+                option: !lambda 'return id(previous_screen).c_str();'
+      - text.set:
+          id: message
+          value: ""
+      - script.execute: control_leds
+
+  - id: script_tts_start
+    parameters:
+      x: string
+    then:
+      - text.set:
+          id: message
+          value: !lambda 'return x.c_str();'
+      - globals.set:
+          id: previous_screen
+          value: !lambda 'return id(screen_name).current_option().c_str();'
+      - select.set:
+          id: screen_name
+          option: "Note"
+
+  - id: time_tick
+    then:
+      - if:
+          condition:
+            lambda: 'return id(screen_name).current_option() == "Clock";'
+          then:
+            - script.execute: control_leds
+
+  - id: screen_clock
+    then:
+      - lambda: |-
+          // Clock Screen
+          auto it = id(screen);
+          auto now = id(rtc_time).now();
+
+          int half_width = it->get_width() / 2;
+
+          // Numerical Date with Suffix logic (e.g., 5th)
+          std::string suffix = "th";
+          int d = now.day_of_month;
+          if (d == 1 || d == 21 || d == 31) suffix = "st";
+          else if (d == 2 || d == 22) suffix = "nd";
+          else if (d == 3 || d == 23) suffix = "rd";
+
+          std::string minute_string = str_sprintf("%02d", now.minute);
+          std::string meridian = now.hour < 12 ? "AM" : "PM";
+
+          int calculated_width;
+          int calculated_height;
+          int calculated_x;
+          int calculated_y;
+          it->get_text_bounds(0, 0, minute_string.c_str(), id(font_clock_time), TextAlign::TOP_LEFT, &calculated_x, &calculated_y, &calculated_width, &calculated_height);
+
+          int left_offset = half_width + calculated_width + 25;
+
+          it->printf(half_width - 15, 150, id(font_clock_time), TextAlign::BASELINE_RIGHT, "%2d", now.hour % 12 == 0 ? 12 : now.hour % 12);
+          it->print(half_width, 150, id(font_clock_time), TextAlign::BASELINE_CENTER, ":");
+          it->print(half_width + 15, 150, id(font_clock_time), TextAlign::BASELINE_LEFT, minute_string.c_str());
+          it->print(left_offset, 150, id(font_clock_am_pm), TextAlign::BASELINE_LEFT, meridian.c_str());
+
+          it->printf(half_width, 200, id(font_clock_day), TextAlign::BASELINE_CENTER, "%s", now.strftime("%A").c_str());
+          it->printf(half_width, 230, id(font_clock_date), TextAlign::BASELINE_CENTER, "%d%s %s %d", d, suffix.c_str(), now.strftime("%B").c_str(), now.year);
+
+  - id: screen_daily_weather
+    then:
+      - lambda: |-
+          //
+          id(status_area_text) = "Daily Weather";
+
+  - id: screen_weekly_weather
+    then:
+      - lambda: |-
+          //
+          id(status_area_text) = "Weekly Weather";
+
+  - id: screen_timers
+    then:
+      - lambda: |-
+          //
+          id(status_area_text) = "Timers";
+
+  - id: screen_note
+    then:
+      - lambda: |-
+          //
+          auto it = id(screen);
+
+          std::string note_text = id(message_wrapped).c_str();
+
+          int calculated_width;
+          int calculated_height;
+          int calculated_x;
+          int calculated_y;
+          it->get_text_bounds(0, 0, note_text.c_str(), id(font_note), TextAlign::TOP_LEFT, &calculated_x, &calculated_y, &calculated_width, &calculated_height);
+
+          int offset_x = (it->get_width() - calculated_width) / 2;
+          int offset_y = ((it->get_height() - 40) - calculated_height) / 2;
+
+          it->print(offset_x, offset_y, id(font_note), note_text.c_str());
+
+          id(status_area_text) = "Note";
+
+  - id: screen_page_1
+    then:
+      - lambda: |-
+          auto it = id(screen);
+
+          //
+          // --- DRAWING SIDEBAR ---
+          it->print(20, 20, id(font_city), "LONDON");
+          it->print(20, 45, id(font_label), "Sat, Feb 7");
+
+          // Current Icon (Material Symbol)
+          it->print(30, 80, id(material_icons), id(symbol)["partly_cloudy_day"].c_str()); // Partly Cloudy
+
+          // Current Temp
+          it->printf(20, 160, id(font_main_temp), "8°C");
+          it->print(20, 215, id(font_label), "Partly Cloudy");
+
+          // Stats
+          it->line(20, 245, 120, 245);
+          it->print(20, 255, id(font_label), "H: 10°  L: 4°");
+          it->print(20, 275, id(font_label), "Wind: 12km/h");
+
+          // --- VERTICAL DIVIDER ---
+          it->line(140, 20, 140, 280);
+
+          // --- HOURLY FORECAST GRID ---
+          // We iterate through your weather data (example assumes a sensor/list)
+          int start_x = 160;
+          int start_y = 30;
+          int col_width = 145;
+          int row_height = 80;
+
+          for (int i = 0; i < 6; i++) {
+            int row = i / 2;
+            int col = i % 2;
+            int x = start_x + (col * col_width);
+            int y = start_y + (row * row_height);
+
+            // Time
+            it->printf(x, y, id(font_hourly_time), "%02d:00", 13 + i);
+
+            // Icon (Small)
+            it->print(x, y + 25, id(material_icons), id(symbol)["wb_sunny"].c_str()); // Replace with logic for icon
+
+            // Temp
+            it->printf(x + 55, y + 28, id(font_hourly_temp_1), "9°");
+          }
+
+  - id: screen_page_2
+    then:
+      - lambda: |-
+          auto it = id(screen);
+
+          //
+          // --- HEADER ---
+          it->print(20, 15, id(font_header_2), "7-DAY FORECAST");
+          it->line(20, 50, it->get_width() - 20, 50);
+
+          // --- WEEKLY ROWS ---
+          int y_offset = 65;
+          int row_height = 32;
+
+          // In a real scenario, you'd loop through your weather forecast list
+          for (int i = 0; i < 7; i++) {
+            // 1. Day of Week & Date (e.g., SUN Feb 8)
+            it->printf(20, y_offset, id(font_day_2), "SUN"); // Replace with dynamic day
+            it->printf(75, y_offset + 3, id(font_label), "Feb %d", 8 + i);
+
+            // 2. Weather Icon (Centered approx at 160px)
+            it->print(160, y_offset - 2, id(material_icons_small), id(symbol)["wb_sunny"].c_str());
+
+            // 3. Condition Description
+            it->print(200, y_offset + 3, id(font_label), "Sunny");
+
+            // 4. Temperatures (Right Aligned)
+            it->printf(it->get_width() - 20, y_offset, id(font_temp), TextAlign::TOP_RIGHT, "12° / 6°");
+
+            // 5. Subtle Row Divider
+            it->line(20, y_offset + 28, it->get_width() - 20, y_offset + 28);
+
+            y_offset += row_height;
+          }
+
+  - id: screen_page_3
+    then:
+      - lambda: |-
+          auto it = id(screen);
+
+          //
+          // --- HEADER ---
+          it->print(20, 20, id(font_header_3), "WEEKLY OUTLOOK");
+          it->line(20, 60, it->get_width() - 20, 60);
+
+          // --- COLUMN SETTINGS ---
+          int start_x = 20;
+          int total_width = it->get_width() - 40;
+          int col_width = total_width / 7;
+
+          for (int i = 0; i < 7; i++) {
+            int cx = start_x + (i * col_width) + (col_width / 2); // Column Center
+
+            // 1. Day & Date
+            it->printf(cx, 80, id(font_day_3), TextAlign::TOP_CENTER, "SUN");
+            it->printf(cx, 100, id(font_date), TextAlign::TOP_CENTER, "02/08");
+
+            // 2. Weather Icon
+            it->print(cx, 130, id(material_icons_weekly), TextAlign::TOP_CENTER, id(symbol)["wb_sunny"].c_str());
+
+            // 3. High/Low Stack
+            it->printf(cx, 190, id(font_temp_hi), TextAlign::TOP_CENTER, "11°");
+            it->printf(cx, 215, id(font_temp_lo), TextAlign::TOP_CENTER, "5°");
+
+            // 4. Vertical Dividers
+            if (i < 6) {
+              int line_x = start_x + (i + 1) * col_width;
+              it->line(line_x, 80, line_x, 240);
+            }
+          }
+
+  - id: screen_page_4
+    then:
+      - lambda: |-
+          auto now = id(rtc_time).now();
+
+          //
+          // --- ALL PREVIOUS FORECAST CODE HERE ---
+          id(status_area_text) = str_sprintf("Updated: %s", now.strftime("%H:%M").c_str());
+
+  - id: screen_page_5
+    then:
+      - lambda: |-
+          auto now = id(rtc_time).now();
+          auto it = id(screen);
+
+          //
+          // --- 1. THE TIME ---
+          // Displaying HH:MM
+          it->printf(20, 150, id(font_time_5), TextAlign::BASELINE_LEFT, "%02d:%02d", now.hour % 12 == 0 ? 12 : now.hour % 12, now.minute);
+
+          // --- 2. AM/PM INDICATOR ---
+          it->print(it->get_width() - 90, 140, id(font_am_pm), now.hour < 12 ? "AM" : "PM");
+
+          // --- 3. VERTICAL DIVIDER ---
+          it->line(it->get_width() - 100, 40, it->get_width() - 100, 260);
+
+          // --- 4. THE DATE COLUMN ---
+          // Day Name (e.g., Monday)
+          it->printf(it->get_width() - 85, 60, id(font_date_day_5), TextAlign::TOP_LEFT, "%s", now.strftime("%A").c_str());
+
+          // Numerical Date with Suffix logic (e.g., 5th)
+          std::string suffix = "th";
+          int d = now.day_of_month;
+          if (d == 1 || d == 21 || d == 31) suffix = "st";
+          else if (d == 2 || d == 22) suffix = "nd";
+          else if (d == 3 || d == 23) suffix = "rd";
+
+          it->printf(it->get_width() - 85, 100, id(font_date_detail_5), "%d%s", d, suffix.c_str());
+
+          // Month & Year
+          it->printf(it->get_width() - 85, 130, id(font_date_detail_5), "%s", now.strftime("%B").c_str());
+          it->printf(it->get_width() - 85, 160, id(font_date_detail_5), "%d", now.year);
+
+          // --- 5. BOTTOM STATUS BAR ---
+          id(status_area_text) = "System Ready";
+
+  - id: screen_page_6
+    then:
+      - lambda: |-
+          auto now = id(rtc_time).now();
+          auto it = id(screen);
+
+          //
+          // --- TOP SECTION: CLOCK & DATE (0 - 140px) ---
+          // Time
+          it->printf(20, 110, id(font_time_6), TextAlign::BASELINE_LEFT, "%02d:%02d", now.hour % 12 == 0 ? 12 : now.hour % 12, now.minute);
+          it->print(it->get_width() - 155, 100, id(font_date_detail_6), now.hour < 12 ? "AM" : "PM");
+
+          // Vertical Divider (Top)
+          it->line(it->get_width() - 125, 20, it->get_width() - 125, 130);
+
+          // Date Column
+          it->printf(it->get_width() - 115, 30, id(font_date_day_6), "%s", now.strftime("%A").c_str());
+          it->printf(it->get_width() - 115, 60, id(font_date_detail_6), "%d%s", now.day_of_month, "th"); // Suffix logic omitted for brevity
+          it->printf(it->get_width() - 115, 85, id(font_date_detail_6), "%s %d", now.strftime("%B").c_str(), now.year);
+
+          // --- HORIZONTAL DIVIDER ---
+          it->line(10, 145, it->get_width() - 10, 145);
+
+          // --- BOTTOM SECTION: WEATHER (155 - 260px) ---
+          // Large Weather Icon
+          it->print(30, 160, id(material_icons_large), id(symbol)["wb_sunny"].c_str()); // wb_sunny
+
+          // Temperature
+          it->printf(125, 230, id(font_temp_main), TextAlign::BASELINE_LEFT, "8°C");
+          it->print(125, 250, id(font_stats), "Sunny");
+
+          // Weather Details (Right Aligned)
+          it->printf(it->get_width() - 135, 175, id(font_stats), "Feels Like: 6°C");
+          it->printf(it->get_width() - 135, 205, id(font_stats), "Wind: 12 km/h");
+          it->printf(it->get_width() - 135, 235, id(font_stats), "Humidity: 60%%");
+
+          // --- FOOTER STATUS BAR ---
+          id(status_area_text) = "System Ready";
+
+  - id: screen_page_7
+    then:
+      - lambda: |-
+          auto now = id(rtc_time).now();
+          auto it = id(screen);
+
+          //
+          // --- TOP SECTION: CLOCK & DATE ---
+          it->printf(20, 100, id(font_time_split), TextAlign::BASELINE_LEFT, "%02d:%02d", now.hour % 12 == 0 ? 12 : now.hour % 12, now.minute);
+
+          it->line(it->get_width() - 140, 25, it->get_width() - 140, 115); // Vertical Divider
+
+          it->printf(it->get_width() - 125, 45, id(font_date_day_7), "%s", now.strftime("%A").c_str());
+          it->printf(it->get_width() - 125, 70, id(font_date_detail_7), "%d%s %s", now.day_of_month, "th", now.strftime("%B").c_str());
+
+          // --- MIDDLE DIVIDER ---
+          it->line(15, 130, it->get_width() - 15, 130);
+
+          // --- BOTTOM SECTION: HOURLY TILES (4 Slots) ---
+          int start_x = 20;
+          int slot_width = 110;
+          int y_base = 150;
+
+          for (int i = 0; i < 4; i++) {
+            int cx = start_x + (i * slot_width) + (slot_width / 2);
+
+            // Time (e.g., 14:00)
+            it->printf(cx, y_base, id(font_hourly_time), TextAlign::TOP_CENTER, "%02d:00", (now.hour + i + 1) % 24);
+
+            // Icon
+            it->print(cx, y_base + 30, id(material_icons_hourly), TextAlign::TOP_CENTER, id(symbol)["wb_sunny"].c_str()); // wb_sunny
+
+            // Temp
+            it->printf(cx, y_base + 75, id(font_hourly_temp_7), TextAlign::TOP_CENTER, "9°");
+
+            // Subtle vertical separators between slots
+            if (i < 3) {
+              it->line(start_x + (i + 1) * slot_width, y_base + 10, start_x + (i + 1) * slot_width, y_base + 90);
+            }
+          }
+
+          // --- FOOTER ---
+          id(status_area_text) = str_sprintf("Last Sync: %s", now.strftime("%H:%M").c_str());
+
+  - id: screen_page_8
+    then:
+      - lambda: |-
+          auto now = id(rtc_time).now();
+          auto it = id(screen);
+
+          //
+          // --- TOP SECTION: CLOCK, CURRENT ICON, & DATE ---
+          // Clock
+          it->printf(20, 100, id(font_time_split), TextAlign::BASELINE_LEFT, "%02d:%02d", now.hour % 12 == 0 ? 12 : now.hour % 12, now.minute);
+
+          // Current Condition Icon (Next to Clock)
+          it->print(it->get_width() - 200, 45, id(material_icons_current), id(symbol)["partly_cloudy_day"].c_str()); // partly_cloudy_day
+
+          it->line(it->get_width() - 140, 25, it->get_width() - 140, 115); // Vertical Divider
+
+          // Date
+          it->printf(it->get_width() - 125, 45, id(font_date_day_7), "%s", now.strftime("%A").c_str());
+          it->printf(it->get_width() - 125, 70, id(font_date_detail_7), "%d%s %s", now.day_of_month, "th", now.strftime("%B").c_str());
+
+          // --- MIDDLE DIVIDER ---
+          it->line(15, 130, it->get_width() - 15, 130);
+
+          // --- BOTTOM SECTION: 4-HOUR FORECAST ---
+          int start_x = 20;
+          int slot_width = 110;
+          int y_base = 150;
+
+          for (int i = 0; i < 4; i++) {
+            int cx = start_x + (i * slot_width) + (slot_width / 2);
+
+            it->printf(cx, y_base, id(font_hourly_time), TextAlign::TOP_CENTER, "%02d:00", (now.hour + i + 1) % 24);
+            it->print(cx, y_base + 30, id(material_icons_hourly), TextAlign::TOP_CENTER, id(symbol)["wb_sunny"].c_str()); // sun icon
+            it->printf(cx, y_base + 75, id(font_hourly_temp_7), TextAlign::TOP_CENTER, "9°");
+
+            if (i < 3) {
+              it->line(start_x + (i + 1) * slot_width, y_base + 10, start_x + (i + 1) * slot_width, y_base + 90);
+            }
+          }
+
+text:
+  - platform: template
+    id: message
+    name: "Message"
+    optimistic: true
+    min_length: 0
+    max_length: 100
+    mode: text
+    icon: "mdi:message-text"
+    on_value:
+      then:
+        - script.execute:
+            id: wrap_text
+            input_text: !lambda return x;
