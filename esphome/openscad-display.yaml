@@ -123,7 +123,7 @@ i2s_audio:
   - id: i2s_bus
     i2s_lrclk_pin: GPIO21
     i2s_bclk_pin: GPIO18
-    mclk_pin: GPIO17
+    i2s_mclk_pin: GPIO17
 
 # Speaker Output
 media_player:
