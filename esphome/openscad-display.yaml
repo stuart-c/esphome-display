@@ -1,0 +1,38 @@
+substitutions:
+  name: "openscad-display"
+  friendly_name: "OpenSCAD Display"
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+# Enable OTA updates
+ota:
+  - platform: esphome
+
+# WiFi configuration (uses pre-stored credentials, fallback to AP on failure)
+wifi:
+  ap:
+    ssid: "OpenSCAD Display Hotspot"
+
+captive_portal:
+
+light:
+  - platform: esp32_rmt_led_strip
+    id: onboard_rgb
+    name: "Onboard RGB LED"
+    pin: GPIO40
+    num_leds: 1
+    rgb_order: GRB
+    chipset: ws2812
