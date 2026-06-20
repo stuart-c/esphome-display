@@ -125,18 +125,34 @@ i2s_audio:
     i2s_bclk_pin: GPIO18
     i2s_mclk_pin: GPIO17
 
-# Speaker Output
-media_player:
+# Speaker Component
+speaker:
   - platform: i2s_audio
-    name: "Speaker"
-    id: speaker_output
+    id: onboard_speaker
     i2s_audio_id: i2s_bus
     i2s_dout_pin: GPIO16
     dac_type: external
-    mute_pin:
+
+# Amplifier Switch
+switch:
+  - platform: gpio
+    name: "Speaker Amplifier"
+    id: speaker_amp
+    pin:
       number: GPIO1
       ignore_strapping_warning: true
-      inverted: true
+    restore_mode: ALWAYS_OFF
+
+# Speaker Output Media Player
+media_player:
+  - platform: speaker
+    name: "Speaker"
+    id: speaker_output
+    speaker: onboard_speaker
+    on_play:
+      - switch.turn_on: speaker_amp
+    on_idle:
+      - switch.turn_off: speaker_amp
 
 # Microphone Input
 microphone:
