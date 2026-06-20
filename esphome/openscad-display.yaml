@@ -159,11 +159,14 @@ media_source:
 
 # Speaker Output Media Player
 media_player:
-  - platform: speaker
+  - platform: speaker_source
     name: "Speaker"
     id: speaker_output
-    announcement_pipeline:
+    media_pipeline:
       speaker: onboard_speaker
+      sources:
+        - sendspin_source
+        - http_source
     on_play:
       - switch.turn_on: speaker_amp
     on_idle:
