@@ -1,3 +1,6 @@
 # OpenSCAD build outputs
 openscad/dist/
 openscad/*.stl
+
+# ESPHome local build cache
+.esphome/
