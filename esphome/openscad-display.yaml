@@ -141,6 +141,22 @@ switch:
     pin: GPIO1
     restore_mode: ALWAYS_OFF
 
+# HTTP Request (required by audio_http)
+http_request:
+
+# Sendspin Hub
+sendspin:
+  id: sendspin_hub
+  task_stack_in_psram: true
+
+# Media Sources
+media_source:
+  - platform: sendspin
+    id: sendspin_source
+    sample_rate: 16000
+  - platform: audio_http
+    id: http_source
+
 # Speaker Output Media Player
 media_player:
   - platform: speaker
@@ -152,6 +168,9 @@ media_player:
       - switch.turn_on: speaker_amp
     on_idle:
       - switch.turn_off: speaker_amp
+  - platform: sendspin
+    id: sendspin_group_media_player
+    name: "Sendspin Player"
 
 # Microphone Input
 microphone:
