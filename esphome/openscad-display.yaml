@@ -60,7 +60,6 @@ display:
     id: screen
     model: JC3248W535
     cs_pin: GPIO10
-    dc_pin: GPIO42
     data_rate: 40MHz
     rotation: 90
     dimensions:
