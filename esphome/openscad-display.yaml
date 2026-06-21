@@ -159,7 +159,7 @@ sendspin:
 # Local Audio Files Embedded in Flash
 audio_file:
   - id: wake_word_triggered_sound
-    file: "sounds/wake_word_triggered.flac"
+    file: "https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/wake_word_triggered.flac"
 
 # Media Sources
 media_source:
