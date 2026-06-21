@@ -95,8 +95,8 @@ touchscreen:
     id: touch_screen
     display: screen
     i2c_id: i2c_bus
-    reset_pin: GPIO47
-    interrupt_pin: GPIO48
+    reset_pin: GPIO48
+    interrupt_pin: GPIO47
     transform:
       swap_xy: true
       mirror_x: false
@@ -120,7 +120,6 @@ audio_dac:
   - platform: es8311
     id: es8311_dac
     i2c_id: i2c_bus
-    address: 0x18
 
 # I2S Audio Bus
 i2s_audio:
@@ -134,7 +133,7 @@ speaker:
   - platform: i2s_audio
     id: onboard_speaker
     i2s_audio_id: i2s_bus
-    i2s_dout_pin: GPIO16
+    i2s_dout_pin: GPIO15
     dac_type: external
 
 # Amplifier Switch
@@ -146,10 +145,6 @@ switch:
       number: GPIO1
       inverted: true
     restore_mode: ALWAYS_OFF
-
-# HTTP Request (required by audio_http)
-http_request:
-  verify_ssl: false
 
 # Sendspin Hub
 sendspin:
@@ -195,7 +190,7 @@ microphone:
   - platform: i2s_audio
     id: onboard_mic
     i2s_audio_id: i2s_bus
-    i2s_din_pin: GPIO15
+    i2s_din_pin: GPIO16
     adc_type: external
     pdm: false
 
