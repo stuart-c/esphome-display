@@ -323,8 +323,8 @@ touchscreen:
     id: touch_screen
     display: screen
     i2c_id: i2c_bus
-    reset_pin: GPIO48
-    interrupt_pin: GPIO47
+    reset_pin: GPIO47
+    interrupt_pin: GPIO48
     transform:
       swap_xy: true
       mirror_x: false
