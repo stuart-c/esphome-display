@@ -1,6 +1,10 @@
 substitutions:
   name: "openscad-display"
   friendly_name: "OpenSCAD Display"
+  weather_entity: "weather.home"
+
+packages:
+  display: !include display.yaml
 
 esphome:
   name: ${name}
@@ -24,13 +28,6 @@ i2c:
     scl: GPIO39
     frequency: 400kHz
 
-# SPI Bus for LCD Display (Quad Mode)
-spi:
-  - id: display_spi
-    type: quad
-    clk_pin: GPIO12
-    data_pins: [GPIO11, GPIO13, GPIO14, GPIO9]
-
 # Enable logging
 logger:
 
@@ -48,33 +45,12 @@ wifi:
 
 captive_portal:
 
-# Fonts for on-screen text rendering
-font:
-  - file: "gfonts://Roboto"
-    id: font_display
-    size: 24
+# Time Synchronization
+time:
+  - platform: homeassistant
+    id: esptime
 
-# LCD Display Component
-display:
-  - platform: mipi_spi
-    id: screen
-    model: JC3248W535
-    cs_pin: GPIO10
-    data_rate: 40MHz
-    rotation: 90
-    dimensions:
-      height: 480
-      width: 320
-    lambda: |-
-      it.printf(it.get_width() / 2, it.get_height() / 2, id(font_display), TextAlign::CENTER, "OpenSCAD Display");
-
-# Backlight PWM Output
-output:
-  - id: backlight_pwm
-    platform: ledc
-    pin: GPIO41
-
-# LED & Backlight Controls
+# LED Controls
 light:
   - platform: esp32_rmt_led_strip
     id: onboard_rgb
@@ -83,24 +59,6 @@ light:
     num_leds: 1
     rgb_order: GRB
     chipset: ws2812
-  - platform: monochromatic
-    id: backlight
-    name: "Backlight"
-    output: backlight_pwm
-    restore_mode: ALWAYS_ON
-
-# Capacitive Touchscreen
-touchscreen:
-  - platform: axs15231
-    id: touch_screen
-    display: screen
-    i2c_id: i2c_bus
-    reset_pin: GPIO47
-    interrupt_pin: GPIO48
-    transform:
-      swap_xy: true
-      mirror_x: false
-      mirror_y: true
 
 # Physical BOOT Button
 binary_sensor:
@@ -194,3 +152,60 @@ microphone:
     adc_type: external
     pdm: false
 
+# Screen Select Template
+select:
+  - platform: template
+    name: "Display Screen"
+    id: active_screen
+    optimistic: true
+    options:
+      - "Welcome"
+      - "Clock"
+      - "Weather"
+      - "System Stats"
+    initial_option: "Welcome"
+    on_value:
+      - lambda: |-
+          if (x == "Welcome") {
+            id(screen).show_page(id(page_welcome));
+          } else if (x == "Clock") {
+            id(screen).show_page(id(page_clock));
+          } else if (x == "Weather") {
+            id(screen).show_page(id(page_weather));
+          } else if (x == "System Stats") {
+            id(screen).show_page(id(page_system_stats));
+          }
+      - component.update: screen
+
+# System and Weather Sensors
+sensor:
+  - platform: homeassistant
+    id: weather_temperature
+    entity_id: ${weather_entity}
+    attribute: temperature
+    on_value:
+      - component.update: screen
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    id: wifi_rssi
+    update_interval: 60s
+    on_value:
+      - component.update: screen
+  - platform: uptime
+    name: "Uptime"
+    id: device_uptime
+    update_interval: 60s
+    on_value:
+      - component.update: screen
+
+# Text Sensors (WiFi IP, Weather Condition)
+text_sensor:
+  - platform: homeassistant
+    id: weather_condition
+    entity_id: ${weather_entity}
+    on_value:
+      - component.update: screen
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+      id: wifi_ip
