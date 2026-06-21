@@ -2,6 +2,9 @@ substitutions:
   name: "openscad-display"
   friendly_name: "OpenSCAD Display"
 
+packages:
+  display: !include display.yaml
+
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
@@ -24,12 +27,6 @@ i2c:
     scl: GPIO39
     frequency: 400kHz
 
-# SPI Bus for LCD Display (Quad Mode)
-spi:
-  - id: display_spi
-    type: quad
-    clk_pin: GPIO12
-    data_pins: [GPIO11, GPIO13, GPIO14, GPIO9]
 
 # Enable logging
 logger:
@@ -48,33 +45,7 @@ wifi:
 
 captive_portal:
 
-# Fonts for on-screen text rendering
-font:
-  - file: "gfonts://Roboto"
-    id: font_display
-    size: 24
-
-# LCD Display Component
-display:
-  - platform: mipi_spi
-    id: screen
-    model: JC3248W535
-    cs_pin: GPIO10
-    data_rate: 40MHz
-    rotation: 90
-    dimensions:
-      height: 480
-      width: 320
-    lambda: |-
-      it.printf(it.get_width() / 2, it.get_height() / 2, id(font_display), TextAlign::CENTER, "OpenSCAD Display");
-
-# Backlight PWM Output
-output:
-  - id: backlight_pwm
-    platform: ledc
-    pin: GPIO41
-
-# LED & Backlight Controls
+# LED Controls
 light:
   - platform: esp32_rmt_led_strip
     id: onboard_rgb
@@ -83,24 +54,6 @@ light:
     num_leds: 1
     rgb_order: GRB
     chipset: ws2812
-  - platform: monochromatic
-    id: backlight
-    name: "Backlight"
-    output: backlight_pwm
-    restore_mode: ALWAYS_ON
-
-# Capacitive Touchscreen
-touchscreen:
-  - platform: axs15231
-    id: touch_screen
-    display: screen
-    i2c_id: i2c_bus
-    reset_pin: GPIO48
-    interrupt_pin: GPIO47
-    transform:
-      swap_xy: true
-      mirror_x: false
-      mirror_y: true
 
 # Physical BOOT Button
 binary_sensor:

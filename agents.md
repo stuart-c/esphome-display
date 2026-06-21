@@ -39,3 +39,20 @@ To facilitate automated GitHub interactions, agents must use a Personal Access T
   gh auth login --with-token < .gh-token
   ```
 - **Security**: The `.gh-token` file is included in `.gitignore` to prevent accidental commits. Never share or commit this file.
+
+## 4. ESPHome Commands via Docker
+
+All ESPHome compilation, validation, and configuration checks **MUST** be run using the official ESPHome Docker container, rather than using a local pip installation.
+
+- **Config Validation**:
+  To validate the ESPHome YAML configuration file, run:
+  ```bash
+  docker run --rm -v "$(pwd):/config" -w /config esphome/esphome config esphome/openscad-display.yaml
+  ```
+
+- **Compilation**:
+  To compile the ESPHome binary, run:
+  ```bash
+  docker run --rm -v "$(pwd):/config" -w /config esphome/esphome compile esphome/openscad-display.yaml
+  ```
+
