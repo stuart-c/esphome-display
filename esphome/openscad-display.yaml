@@ -149,6 +149,7 @@ switch:
 
 # HTTP Request (required by audio_http)
 http_request:
+  verify_ssl: false
 
 # Sendspin Hub
 sendspin:
