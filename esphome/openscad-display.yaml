@@ -1,6 +1,7 @@
 substitutions:
   name: "openscad-display"
   friendly_name: "OpenSCAD Display"
+  weather_entity: "weather.home"
 
 packages:
   display: !include display.yaml
@@ -27,7 +28,6 @@ i2c:
     scl: GPIO39
     frequency: 400kHz
 
-
 # Enable logging
 logger:
 
@@ -44,6 +44,11 @@ wifi:
     ssid: "OpenSCAD Display Hotspot"
 
 captive_portal:
+
+# Time Synchronization
+time:
+  - platform: homeassistant
+    id: esptime
 
 # LED Controls
 light:
@@ -147,3 +152,60 @@ microphone:
     adc_type: external
     pdm: false
 
+# Screen Select Template
+select:
+  - platform: template
+    name: "Display Screen"
+    id: active_screen
+    optimistic: true
+    options:
+      - "Welcome"
+      - "Clock"
+      - "Weather"
+      - "System Stats"
+    initial_option: "Welcome"
+    on_value:
+      - lambda: |-
+          if (x == "Welcome") {
+            id(screen).show_page(id(page_welcome));
+          } else if (x == "Clock") {
+            id(screen).show_page(id(page_clock));
+          } else if (x == "Weather") {
+            id(screen).show_page(id(page_weather));
+          } else if (x == "System Stats") {
+            id(screen).show_page(id(page_system_stats));
+          }
+      - component.update: screen
+
+# System and Weather Sensors
+sensor:
+  - platform: homeassistant
+    id: weather_temperature
+    entity_id: ${weather_entity}
+    attribute: temperature
+    on_value:
+      - component.update: screen
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    id: wifi_rssi
+    update_interval: 60s
+    on_value:
+      - component.update: screen
+  - platform: uptime
+    name: "Uptime"
+    id: device_uptime
+    update_interval: 60s
+    on_value:
+      - component.update: screen
+
+# Text Sensors (WiFi IP, Weather Condition)
+text_sensor:
+  - platform: homeassistant
+    id: weather_condition
+    entity_id: ${weather_entity}
+    on_value:
+      - component.update: screen
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+      id: wifi_ip

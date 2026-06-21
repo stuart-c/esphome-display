@@ -5,11 +5,47 @@ spi:
     clk_pin: GPIO12
     data_pins: [GPIO11, GPIO13, GPIO14, GPIO9]
 
+# Reusable Color Constants
+color:
+  - id: color_bg
+    red: 0.05
+    green: 0.05
+    blue: 0.08
+  - id: color_white
+    red: 1.0
+    green: 1.0
+    blue: 1.0
+  - id: color_accent
+    red: 0.0
+    green: 0.6
+    blue: 1.0
+  - id: color_gray
+    red: 0.5
+    green: 0.5
+    blue: 0.5
+  - id: color_green
+    red: 0.1
+    green: 0.8
+    blue: 0.2
+  - id: color_amber
+    red: 1.0
+    green: 0.7
+    blue: 0.0
+
 # Fonts for on-screen text rendering
 font:
   - file: "gfonts://Roboto"
-    id: font_display
+    id: font_small
+    size: 16
+  - file: "gfonts://Roboto"
+    id: font_medium
     size: 24
+  - file: "gfonts://Roboto"
+    id: font_large
+    size: 48
+  - file: "gfonts://Roboto"
+    id: font_huge
+    size: 72
 
 # LCD Display Component
 display:
@@ -22,8 +58,250 @@ display:
     dimensions:
       height: 480
       width: 320
-    lambda: |-
-      it.printf(it.get_width() / 2, it.get_height() / 2, id(font_display), TextAlign::CENTER, "OpenSCAD Display");
+    update_interval: 1s
+    pages:
+      - id: page_welcome
+        lambda: |-
+          // Draw background
+          it.fill(id(color_bg));
+
+          // Draw common header
+          it.filled_rectangle(0, 0, 480, 30, id(color_bg));
+          it.line(0, 30, 480, 30, id(color_accent));
+          it.print(15, 5, id(font_small), id(color_white), TextAlign::TOP_LEFT, "Welcome");
+
+          // WiFi Signal Strength Bars
+          if (!std::isnan(id(wifi_rssi).state)) {
+            int rssi = id(wifi_rssi).state;
+            it.filled_rectangle(425, 20, 3, 4, rssi >= -90 ? id(color_green) : id(color_gray));
+            it.filled_rectangle(430, 16, 3, 8, rssi >= -80 ? id(color_green) : id(color_gray));
+            it.filled_rectangle(435, 12, 3, 12, rssi >= -70 ? id(color_green) : id(color_gray));
+            it.filled_rectangle(440, 8, 3, 16, rssi >= -60 ? id(color_green) : id(color_gray));
+          }
+
+          auto time_now = id(esptime).now();
+          if (time_now.is_valid()) {
+            char time_str[10];
+            time_now.strftime(time_str, sizeof(time_str), "%H:%M");
+            it.print(410, 5, id(font_small), id(color_white), TextAlign::TOP_RIGHT, time_str);
+          }
+
+          it.print(240, 90, id(font_huge), id(color_white), TextAlign::CENTER, "OpenSCAD");
+          it.print(240, 165, id(font_large), id(color_accent), TextAlign::CENTER, "Display");
+          it.print(240, 230, id(font_medium), id(color_gray), TextAlign::CENTER, "Smart Home Terminal");
+          it.print(240, 280, id(font_small), id(color_gray), TextAlign::CENTER, "Tap screen to navigate");
+
+      - id: page_clock
+        lambda: |-
+          // Draw background
+          it.fill(id(color_bg));
+
+          // Draw common header
+          it.filled_rectangle(0, 0, 480, 30, id(color_bg));
+          it.line(0, 30, 480, 30, id(color_accent));
+          it.print(15, 5, id(font_small), id(color_white), TextAlign::TOP_LEFT, "Clock");
+
+          // WiFi Signal Strength Bars
+          if (!std::isnan(id(wifi_rssi).state)) {
+            int rssi = id(wifi_rssi).state;
+            it.filled_rectangle(425, 20, 3, 4, rssi >= -90 ? id(color_green) : id(color_gray));
+            it.filled_rectangle(430, 16, 3, 8, rssi >= -80 ? id(color_green) : id(color_gray));
+            it.filled_rectangle(435, 12, 3, 12, rssi >= -70 ? id(color_green) : id(color_gray));
+            it.filled_rectangle(440, 8, 3, 16, rssi >= -60 ? id(color_green) : id(color_gray));
+          }
+
+          auto time_now = id(esptime).now();
+          if (time_now.is_valid()) {
+            char time_str[20];
+            time_now.strftime(time_str, sizeof(time_str), "%H:%M:%S");
+            it.print(240, 130, id(font_huge), id(color_white), TextAlign::CENTER, time_str);
+
+            char date_str[40];
+            time_now.strftime(date_str, sizeof(date_str), "%A, %B %d, %Y");
+            it.print(240, 210, id(font_medium), id(color_white), TextAlign::CENTER, date_str);
+
+            // Seconds progress bar along the bottom
+            int sec = time_now.second;
+            int w = (sec * 480) / 60;
+            it.filled_rectangle(0, 314, w, 6, id(color_accent));
+          } else {
+            it.print(240, 160, id(font_medium), id(color_gray), TextAlign::CENTER, "Syncing time...");
+          }
+
+      - id: page_weather
+        lambda: |-
+          // Draw background
+          it.fill(id(color_bg));
+
+          // Draw common header
+          it.filled_rectangle(0, 0, 480, 30, id(color_bg));
+          it.line(0, 30, 480, 30, id(color_accent));
+          it.print(15, 5, id(font_small), id(color_white), TextAlign::TOP_LEFT, "Weather");
+
+          // WiFi Signal Strength Bars
+          if (!std::isnan(id(wifi_rssi).state)) {
+            int rssi = id(wifi_rssi).state;
+            it.filled_rectangle(425, 20, 3, 4, rssi >= -90 ? id(color_green) : id(color_gray));
+            it.filled_rectangle(430, 16, 3, 8, rssi >= -80 ? id(color_green) : id(color_gray));
+            it.filled_rectangle(435, 12, 3, 12, rssi >= -70 ? id(color_green) : id(color_gray));
+            it.filled_rectangle(440, 8, 3, 16, rssi >= -60 ? id(color_green) : id(color_gray));
+          }
+
+          auto time_now = id(esptime).now();
+          if (time_now.is_valid()) {
+            char time_str[10];
+            time_now.strftime(time_str, sizeof(time_str), "%H:%M");
+            it.print(410, 5, id(font_small), id(color_white), TextAlign::TOP_RIGHT, time_str);
+          }
+
+          // Temperature
+          if (std::isnan(id(weather_temperature).state)) {
+            it.print(240, 120, id(font_large), id(color_white), TextAlign::TOP_LEFT, "--- °C");
+          } else {
+            it.printf(240, 120, id(font_large), id(color_white), TextAlign::TOP_LEFT, "%.1f °C", id(weather_temperature).state);
+          }
+
+          // Condition formatted nicely
+          std::string cond = id(weather_condition).state;
+          if (cond.empty()) {
+            cond = "Unknown";
+          } else {
+            for (size_t i = 0; i < cond.length(); ++i) {
+              if (i == 0 || cond[i - 1] == ' ' || cond[i - 1] == '-' || cond[i - 1] == '_') {
+                cond[i] = toupper(cond[i]);
+              }
+              if (cond[i] == '-' || cond[i] == '_') {
+                cond[i] = ' ';
+              }
+            }
+          }
+          it.print(240, 180, id(font_medium), id(color_accent), TextAlign::TOP_LEFT, cond.c_str());
+          it.print(240, 220, id(font_small), id(color_gray), TextAlign::TOP_LEFT, "Home Assistant Weather");
+
+          // Weather Icon on Left
+          int cx = 120;
+          int cy = 175;
+          std::string raw_cond = id(weather_condition).state;
+          for (size_t i = 0; i < raw_cond.length(); ++i) {
+            raw_cond[i] = tolower(raw_cond[i]);
+          }
+
+          if (raw_cond == "sunny" || raw_cond == "clear" || raw_cond == "clear-night") {
+            if (raw_cond == "clear-night") {
+              // Moon (Crescent)
+              it.filled_circle(cx, cy, 30, id(color_amber));
+              it.filled_circle(cx - 10, cy, 30, id(color_bg));
+            } else {
+              // Sun
+              it.filled_circle(cx, cy, 22, id(color_amber));
+              for (int i = 0; i < 8; ++i) {
+                double angle = i * M_PI / 4.0;
+                int x1 = cx + cos(angle) * 27;
+                int y1 = cy + sin(angle) * 27;
+                int x2 = cx + cos(angle) * 37;
+                int y2 = cy + sin(angle) * 37;
+                it.line(x1, y1, x2, y2, id(color_amber));
+              }
+            }
+          } 
+          else if (raw_cond == "rainy" || raw_cond == "pouring" || raw_cond == "hail" || raw_cond == "lightning" || raw_cond == "lightning-rainy") {
+            // Cloud
+            it.filled_circle(cx - 15, cy + 5, 18, id(color_gray));
+            it.filled_circle(cx, cy - 5, 22, id(color_gray));
+            it.filled_circle(cx + 15, cy + 5, 15, id(color_gray));
+            it.filled_rectangle(cx - 15, cy + 5, 30, 15, id(color_gray));
+            // Rain drops
+            it.line(cx - 10, cy + 22, cx - 14, cy + 34, id(color_accent));
+            it.line(cx, cy + 22, cx - 4, cy + 34, id(color_accent));
+            it.line(cx + 10, cy + 22, cx + 6, cy + 34, id(color_accent));
+          } 
+          else if (raw_cond == "snowy" || raw_cond == "snowy-rainy") {
+            // Cloud
+            it.filled_circle(cx - 15, cy + 5, 18, id(color_gray));
+            it.filled_circle(cx, cy - 5, 22, id(color_gray));
+            it.filled_circle(cx + 15, cy + 5, 15, id(color_gray));
+            it.filled_rectangle(cx - 15, cy + 5, 30, 15, id(color_gray));
+            // Snow flakes
+            it.filled_circle(cx - 10, cy + 26, 2, id(color_white));
+            it.filled_circle(cx, cy + 28, 2, id(color_white));
+            it.filled_circle(cx + 10, cy + 26, 2, id(color_white));
+          } 
+          else {
+            // Default: Cloud (cloudy, partlycloudy, fog, etc.)
+            it.filled_circle(cx - 18, cy + 5, 20, id(color_gray));
+            it.filled_circle(cx, cy - 8, 25, id(color_gray));
+            it.filled_circle(cx + 18, cy + 5, 18, id(color_gray));
+            it.filled_rectangle(cx - 18, cy + 5, 36, 18, id(color_gray));
+            if (raw_cond.find("cloudy") != std::string::npos && raw_cond != "cloudy") {
+              // Partly cloudy: small sun behind
+              it.filled_circle(cx - 15, cy - 18, 12, id(color_amber));
+            }
+          }
+
+      - id: page_system_stats
+        lambda: |-
+          // Draw background
+          it.fill(id(color_bg));
+
+          // Draw common header
+          it.filled_rectangle(0, 0, 480, 30, id(color_bg));
+          it.line(0, 30, 480, 30, id(color_accent));
+          it.print(15, 5, id(font_small), id(color_white), TextAlign::TOP_LEFT, "System Stats");
+
+          // WiFi Signal Strength Bars
+          if (!std::isnan(id(wifi_rssi).state)) {
+            int rssi = id(wifi_rssi).state;
+            it.filled_rectangle(425, 20, 3, 4, rssi >= -90 ? id(color_green) : id(color_gray));
+            it.filled_rectangle(430, 16, 3, 8, rssi >= -80 ? id(color_green) : id(color_gray));
+            it.filled_rectangle(435, 12, 3, 12, rssi >= -70 ? id(color_green) : id(color_gray));
+            it.filled_rectangle(440, 8, 3, 16, rssi >= -60 ? id(color_green) : id(color_gray));
+          }
+
+          auto time_now = id(esptime).now();
+          if (time_now.is_valid()) {
+            char time_str[10];
+            time_now.strftime(time_str, sizeof(time_str), "%H:%M");
+            it.print(410, 5, id(font_small), id(color_white), TextAlign::TOP_RIGHT, time_str);
+          }
+
+          it.print(240, 60, id(font_medium), id(color_accent), TextAlign::CENTER, "System Information");
+
+          // Row 1: IP Address
+          it.print(40, 120, id(font_medium), id(color_gray), TextAlign::TOP_LEFT, "IP Address");
+          if (id(wifi_ip).state.empty()) {
+            it.print(220, 120, id(font_medium), id(color_white), TextAlign::TOP_LEFT, "Connecting...");
+          } else {
+            it.print(220, 120, id(font_medium), id(color_white), TextAlign::TOP_LEFT, id(wifi_ip).state.c_str());
+          }
+
+          // Row 2: WiFi Signal
+          it.print(40, 180, id(font_medium), id(color_gray), TextAlign::TOP_LEFT, "WiFi Signal");
+          if (std::isnan(id(wifi_rssi).state)) {
+            it.print(220, 180, id(font_medium), id(color_white), TextAlign::TOP_LEFT, "--- dBm");
+          } else {
+            it.printf(220, 180, id(font_medium), id(color_white), TextAlign::TOP_LEFT, "%.0f dBm", id(wifi_rssi).state);
+            
+            // Large Wifi strength indicator on right
+            int rssi = id(wifi_rssi).state;
+            int bx = 380;
+            int by = 180;
+            it.filled_rectangle(bx, by + 16, 5, 8, rssi >= -90 ? id(color_green) : id(color_gray));
+            it.filled_rectangle(bx + 8, by + 10, 5, 14, rssi >= -80 ? id(color_green) : id(color_gray));
+            it.filled_rectangle(bx + 16, by + 4, 5, 20, rssi >= -70 ? id(color_green) : id(color_gray));
+            it.filled_rectangle(bx + 24, by - 2, 5, 26, rssi >= -60 ? id(color_green) : id(color_gray));
+          }
+
+          // Row 3: Uptime
+          it.print(40, 240, id(font_medium), id(color_gray), TextAlign::TOP_LEFT, "Uptime");
+          if (std::isnan(id(device_uptime).state)) {
+            it.print(220, 240, id(font_medium), id(color_white), TextAlign::TOP_LEFT, "---");
+          } else {
+            int ut = id(device_uptime).state;
+            int days = ut / 86400;
+            int hours = (ut % 86400) / 3600;
+            int mins = (ut % 3600) / 60;
+            it.printf(220, 240, id(font_medium), id(color_white), TextAlign::TOP_LEFT, "%dd %dh %dm", days, hours, mins);
+          }
 
 # Backlight PWM Output
 output:
@@ -51,3 +329,8 @@ touchscreen:
       swap_xy: true
       mirror_x: false
       mirror_y: true
+    on_touch:
+      then:
+        - select.next:
+            id: active_screen
+            cycle: true
