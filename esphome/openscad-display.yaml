@@ -111,7 +111,9 @@ binary_sensor:
       ignore_strapping_warning: true
     name: "Screen Button"
     on_press:
-      - light.toggle: backlight
+      - media_player.play_media:
+          id: speaker_output
+          media_url: "https://github.com/esphome/home-assistant-voice-pe/raw/main/sounds/wake_word_triggered.flac"
 
 # Audio Codec (ES8311)
 audio_dac:
