@@ -4,3 +4,6 @@ openscad/*.stl
 
 # ESPHome local build cache
 .esphome/
+
+# GitHub CLI Authentication token
+.gh-token
